@@ -1,0 +1,218 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.gov.com:      
+  peer0.hosp.upload.com:
+  peer0.user.inoculate.com:
+  peer0.committing.undertake.com:
+  peer0.endorser.issue.com:
+
+networks:
+  byfn:
+
+services:
+
+  orderer.gov.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.gov.com
+    container_name: orderer.gov.com
+    networks:
+      - byfn
+
+
+  peer0.hosp.upload.com:
+    container_name: peer0.hosp.upload.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.hosp.upload.com
+    networks:
+      - byfn
+
+  peer0.user.inoculate.com:
+    container_name: peer0.user.inoculate.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.user.inoculate.com
+    networks:
+      - byfn
+
+  peer0.committing.undertake.com:
+    container_name: peer0.committing.undertake.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.committing.undertake.com
+    networks:
+      - byfn
+      
+  peer0.endorser.issue.com:
+    container_name: peer0.endorser.issue.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.endorser.issue.com
+    networks:
+      - byfn
+
+
+  cli_HOSP:
+    container_name: cli_HOSP
+    image: hyperledger/fabric-tools
+    tty: true
+    stdin_open: true
+    environment:
+      - GODEBUG=netdns=go
+      - GOPATH=/root/go
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli_HOSP
+      - CORE_PEER_ADDRESS=peer0.hosp.upload.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_PEER_LOCALMSPID=HOSPMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/Hyperledger/crypto-config/peerOrganizations/hosp.upload.com/peers/peer0.hosp.upload.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/Hyperledger/crypto-config/peerOrganizations/hosp.upload.com/peers/peer0.hosp.upload.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/Hyperledger/crypto-config/peerOrganizations/hosp.upload.com/peers/peer0.hosp.upload.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/Hyperledger/crypto-config/peerOrganizations/hosp.upload.com/users/Admin@hosp.upload.com/msp
+    working_dir: /Hyperledger
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./chaincode/:/chaincode
+        - ./crypto-config:/Hyperledger/crypto-config/
+        - ./scripts:/Hyperledger/scripts/
+        - ./channel-artifacts:/Hyperledger/channel-artifacts
+    depends_on:
+      - orderer.gov.com
+      - peer0.hosp.upload.com
+      - peer0.user.inoculate.com
+      - peer0.committing.undertake.com
+      - peer0.endorser.issue.com
+
+    networks:
+      - byfn
+
+  
+  cli_User:
+    container_name: cli_User
+    image: hyperledger/fabric-tools
+    tty: true
+    stdin_open: true
+    environment:
+      - GODEBUG=netdns=go
+      - GOPATH=/root/go
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli_User
+      - CORE_PEER_ADDRESS=peer0.user.inoculate.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_PEER_LOCALMSPID=UserMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/Hyperledger/crypto-config/peerOrganizations/user.inoculate.com/peers/peer0.user.inoculate.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/Hyperledger/crypto-config/peerOrganizations/user.inoculate.com/peers/peer0.user.inoculate.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/Hyperledger/crypto-config/peerOrganizations/user.inoculate.com/peers/peer0.user.inoculate.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/Hyperledger/crypto-config/peerOrganizations/user.inoculate.com/users/Admin@user.inoculate.com/msp
+    working_dir: /Hyperledger
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./chaincode/:/root/go/src/github.com/chaincode
+        - ./crypto-config:/root/go/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/root/go/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/root/go/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.gov.com
+      - peer0.hosp.upload.com
+      - peer0.user.inoculate.com
+      - peer0.committing.undertake.com
+      - peer0.endorser.issue.com
+
+    networks:
+      - byfn
+
+  
+
+  cli_Committing:
+    container_name: cli_Committing
+    image: hyperledger/fabric-tools
+    tty: true
+    stdin_open: true
+    environment:
+      - GODEBUG=netdns=go
+      - GOPATH=/root/go
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli_Committing
+      - CORE_PEER_ADDRESS=peer0.committing.undertake.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_PEER_LOCALMSPID=CommittingMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/Hyperledger/crypto-config/peerOrganizations/committing.undertake.com/peers/peer0.committing.undertake.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/Hyperledger/crypto-config/peerOrganizations/committing.undertake.com/peers/peer0.committing.undertake.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/Hyperledger/crypto-config/peerOrganizations/committing.undertake.com/peers/peer0.committing.undertake.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/Hyperledger/crypto-config/peerOrganizations/committing.undertake.com/users/Admin@committing.undertake.com/msp
+    working_dir: /Hyperledger
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./chaincode/:/root/go/src/github.com/chaincode
+        - ./crypto-config:/root/go/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/root/go/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/root/go/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.gov.com
+      - peer0.hosp.upload.com
+      - peer0.user.inoculate.com
+      - peer0.committing.undertake.com
+      - peer0.endorser.issue.com
+
+    networks:
+      - byfn
+      
+  cli_Endorser:
+    container_name: cli_Endorser
+    image: hyperledger/fabric-tools
+    tty: true
+    stdin_open: true
+    environment:
+      - GODEBUG=netdns=go
+      - GOPATH=/root/go
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli_Endorser
+      - CORE_PEER_ADDRESS=peer0.endorser.issue.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_PEER_LOCALMSPID=EndorserMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/Hyperledger/crypto-config/peerOrganizations/endorser.issue.com/peers/peer0.endorser.issue.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/Hyperledger/crypto-config/peerOrganizations/endorser.issue.com/peers/peer0.endorser.issue.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/Hyperledger/crypto-config/peerOrganizations/endorser.issue.com/peers/peer0.endorser.issue.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/Hyperledger/crypto-config/peerOrganizations/endorser.issue.com/users/Admin@endorser.issue.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./chaincode/:/root/go/src/github.com/chaincode
+        - ./crypto-config:/root/go/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/root/go/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/root/go/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.gov.com
+      - peer0.hosp.upload.com
+      - peer0.user.inoculate.com
+      - peer0.committing.undertake.com
+      - peer0.endorser.issue.com
+
+    networks:
+      - byfn
+
+
+

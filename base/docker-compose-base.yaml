@@ -1,0 +1,128 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+
+  orderer.gov.com:
+    container_name: orderer.gov.com
+    image: hyperledger/fabric-orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+      - ORDERER_KAFKA_VERBOSE=true
+    working_dir: /Hyperledger
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/gov.com/orderers/orderer.gov.com/msp/:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/gov.com/orderers/orderer.gov.com/tls/:/var/hyperledger/orderer/tls
+    - orderer.gov.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.hosp.upload.com:
+    container_name: peer0.hosp.upload.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.hosp.upload.com
+      - CORE_PEER_ADDRESS=peer0.hosp.upload.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.hosp.upload.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.hosp.upload.com:7051
+      - CORE_PEER_LOCALMSPID=HOSPMSP
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/hosp.upload.com/peers/peer0.hosp.upload.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/hosp.upload.com/peers/peer0.hosp.upload.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.hosp.upload.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+      - 7053:7053
+
+  peer0.user.inoculate.com:
+    container_name: peer0.user.inoculate.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.user.inoculate.com
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_PEER_ADDRESS=peer0.user.inoculate.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.user.inoculate.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.user.inoculate.com:7051
+      - CORE_PEER_LOCALMSPID=UserMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/user.inoculate.com/peers/peer0.user.inoculate.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/user.inoculate.com/peers/peer0.user.inoculate.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.user.inoculate.com:/var/hyperledger/production
+
+    ports:
+      - 6051:7051
+      - 6053:7053
+
+  peer0.committing.undertake.com:
+    container_name: peer0.committing.undertake.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.committing.undertake.com
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_PEER_ADDRESS=peer0.committing.undertake.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.committing.undertake.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.committing.undertake.com:7051
+      - CORE_PEER_LOCALMSPID=CommittingMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/committing.undertake.com/peers/peer0.committing.undertake.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/committing.undertake.com/peers/peer0.committing.undertake.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.committing.undertake.com:/var/hyperledger/production
+    ports:
+      - 8051:7051
+      - 8053:7053
+
+  peer0.endorser.issue.com:
+    container_name: peer0.endorser.issue.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.endorser.issue.com
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_PEER_ADDRESS=peer0.endorser.issue.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.endorser.issue.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.endorser.issue.com:7051
+      - CORE_PEER_LOCALMSPID=EndorserMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/endorser.issue.com/peers/peer0.endorser.issue.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/endorser.issue.com/peers/peer0.endorser.issue.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.endorser.issue.com:/var/hyperledger/production
+    ports:
+      - 9051:7051
+      - 9053:7053
