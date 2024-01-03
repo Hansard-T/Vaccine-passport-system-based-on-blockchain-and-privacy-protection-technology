@@ -1,9 +1,0 @@
-{
-    "organizations": {},
-    "orderers": {},
-    "peers": {},
-    "certificateAuthorities": {},
-    "a": {
-        "b": "a.b"
-    }
-}
